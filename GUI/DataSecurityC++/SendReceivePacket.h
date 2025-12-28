@@ -299,12 +299,16 @@ void signup(std::string username, std::string passsword, std::string path)
     std::cout << "register packet sent!";
 
 }
-void login(std::string username, std::string passsword)
+bool login(std::string username, std::string passsword)
 {
     std::string req = ("{\"type\":\"LOGIN\",\"username\":\"") + json_escape(username) +
         "\",\"password\":\"" + json_escape(passsword) + "\"}";
 
-    sendPacket(req);
+    std::string resp = receivePacket(req);
+    if (resp == "granted")
+        return true;
+    else
+        return false;
 
 }
 
