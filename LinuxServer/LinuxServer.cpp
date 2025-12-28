@@ -487,12 +487,12 @@ static void handle_client(int fd, sockaddr_in addr) {
                 if (loginStatus) //success
                 {
                     std::cout << "Access granted for " << username << "\n";
-                    resp = "{\"type\":\"ACK\",\"access granted\":\"" + type + "\"}";
+                    resp = "granted";
                 }
                 else 
                 {  
                     std::cout << "Access denied for " << username << "\n";
-                    resp = "{\"type\":\"ACK\",\"access denied\":\"" + type + "\"}";
+                    resp = "denied";
                 }
                 if (!send_json(fd, resp)) break;
 
