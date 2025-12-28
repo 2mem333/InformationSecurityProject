@@ -13,8 +13,11 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <sstream>
+
 
 #include "StegLSB.h"
+#include "DES.h"
 
 // Senin alfabeten
 static const std::string B64_CHARS =
@@ -71,6 +74,7 @@ std::vector<uint8_t> base64_decode(std::string s)
     return out;
 }
 
+//LOGIN EVENT FUNCTION
 bool checkPassword(std::string name, std::string password)
 {
     std::ifstream file("databases/users.txt");
@@ -92,6 +96,7 @@ bool checkPassword(std::string name, std::string password)
     return false; // bulunamadý veya yanlýþ
 }
 
+//REGISTER EVENT FUNCTIONS
 bool savePicture(const std::string &name, const std::string& file64)
 {
     // Basit güvenlik
@@ -116,7 +121,6 @@ bool savePicture(const std::string &name, const std::string& file64)
     out.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
     return out.good();
 }
-
 bool registerUser(const std::string& name)
 {
     std::string filePath = "pictures/" + name + ".png";
@@ -172,6 +176,7 @@ bool registerUser(const std::string& name)
     return true;
 }
 
+//LIST USERS FUNCTION
 std::string listUsers()
 {
     std::ifstream file("databases/users.txt");
@@ -193,6 +198,148 @@ std::string listUsers()
     return result;
 }
 
+//GET USERS MAILS
+std::string getMails(const std::string& name)
+{
+    std::ifstream file("databases/messages/" + name + ".txt");
+    if (!file.is_open())
+        return "";
+
+    std::string result;
+    std::string line;
+
+    while (std::getline(file, line))   // satýr satýr oku
+    {
+        if (line.empty())
+            continue;
+
+        if (!result.empty())
+            result += ",";   // önceki varsa virgül koy
+
+        result += line;      // SATIRIN TAMAMI
+    }
+
+    return result;
+}
+
+//SEND MESSAGE FUNCTIONS
+std::string findPassword(const std::string& name)
+{
+    std::ifstream file("databases/users.txt");
+    if (!file.is_open())
+        return "";
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        // Boþ satýrlarý geç
+        if (line.empty())
+            continue;
+
+        std::istringstream iss(line);
+        std::string username, password;
+
+        // "efe 123" formatýný bekliyoruz
+        if (!(iss >> username >> password))
+            continue;
+
+        if (username == name)
+            return password;
+    }
+
+    return "";
+}
+std::string DesKeyForUser(const std::string& name)
+{
+    std::string pwd = findPassword(name);
+
+    std::string key(8, 0);
+    for (size_t i = 0; i < pwd.size(); ++i)
+        key[i % 8] ^= pwd[i];
+
+    // 2) Sezar kaydýrma (printable ASCII 32..126 içinde kalsýn)
+    // shift deðerini pwd uzunluðundan türetiyoruz (deterministik)
+    int shift = static_cast<int>(pwd.size() % 95); // 95 printable karakter var
+    for (int i = 0; i < 8; ++i)
+    {
+        unsigned char c = static_cast<unsigned char>(key[i]);
+        c = static_cast<unsigned char>((c % 95) + 32);                 // 32..126'ya getir
+        c = static_cast<unsigned char>(((c - 32 + shift) % 95) + 32);  // Sezar
+        key[i] = static_cast<char>(c);
+    }
+
+    return key; // 8 karakterlik DES key
+}
+std::string decryptReceivedMsg(const std::string &msg, const std::string &sender)
+{
+    std::string SenderKey = DesKeyForUser(sender); //burada senderin anahtar degeri bulunacak.
+
+    std::string decMsg = simple_des::DES_DecryptBase64(msg, SenderKey);
+    std::cout << "decrypted msg (with key of sender): " << decMsg << "\n";
+
+    return decMsg;
+
+}
+bool putMessageToMailbox(const std::string& msg, const std::string& sender, const std::string& receiver)
+{
+    // Mesaj receiver'ýn anahtarý ile þifrelenir
+    std::string RecKey = DesKeyForUser(receiver); // receiver anahtarý
+    std::string encMsg = simple_des::DES_EncryptBase64(msg, RecKey);
+    std::cout << "encrypted msg (with key of rec): " << encMsg << "\n";
+
+    // sender:mesaj formatý
+    std::string finalMsg = sender + ":" + encMsg;
+
+    const std::string path = "databases/messages/" + receiver + ".txt";
+
+    std::ifstream inFile(path);
+    std::vector<std::string> lines;
+    std::string line;
+    bool written = false;
+
+    if (inFile.is_open())
+    {
+        // Dosya varsa oku
+        while (std::getline(inFile, line))
+        {
+            if (!written && line.empty())
+            {
+                lines.push_back(finalMsg);
+                written = true;
+            }
+            else
+            {
+                lines.push_back(line);
+            }
+        }
+        inFile.close();
+
+        // Dosyada boþ satýr yoksa mesajý sona ekle
+        if (!written)
+        {
+            lines.push_back(finalMsg);
+        }
+    }
+    else
+    {
+        // Dosya yoksa oluþtur ve ilk satýra yaz
+        lines.push_back(finalMsg);
+    }
+
+    std::ofstream outFile(path, std::ios::trunc);
+    if (!outFile.is_open())
+        return false;
+
+    for (size_t i = 0; i < lines.size(); ++i)
+    {
+        outFile << lines[i];
+        if (i + 1 < lines.size())
+            outFile << '\n';
+    }
+
+    outFile.close();
+    return true;
+}
 
 
 static bool send_all(int fd, const void* data, size_t len) {
@@ -339,10 +486,12 @@ static void handle_client(int fd, sockaddr_in addr) {
                 std::string resp;
                 if (loginStatus) //success
                 {
+                    std::cout << "Access granted for " << username << "\n";
                     resp = "{\"type\":\"ACK\",\"access granted\":\"" + type + "\"}";
                 }
                 else 
-                {
+                {  
+                    std::cout << "Access denied for " << username << "\n";
                     resp = "{\"type\":\"ACK\",\"access denied\":\"" + type + "\"}";
                 }
                 if (!send_json(fd, resp)) break;
@@ -350,21 +499,33 @@ static void handle_client(int fd, sockaddr_in addr) {
             }
             else if(type == "LISTUSERS")
             {
-                std::string resp = "{\"type\":\"ACK\",\"USERS\":\"" + listUsers() + "\"}";
+                std::string resp = listUsers(); //json olarak göndermez
 
                 if (!send_json(fd, resp)) break;
             }
 
             else if (type == "REFRESHMAILBOX")
             {
-                std::string resp = "{\"type\":\"ACK\",\"refreshing mailbox\":\"" + type + "\"}";
-
+                std::string username;
+                json_get_value(req, "username", username);
+                std::string resp = getMails(username); //json olarak göndermez
+                std::cout << "getting mails for: " << username << "\n";
                 if (!send_json(fd, resp)) break;
             }
 
             else if(type == "SENDMESSAGE")
             {
-             
+                std::string sender;
+                std::string receiver;
+                std::string message;
+                json_get_value(req, "from", sender);
+                json_get_value(req, "to", receiver);
+                json_get_value(req, "message", message);
+
+                std::cout << "From: " << sender << " to: " << receiver << " content: " << message << "\n";
+                std::string decyptedMsg = decryptReceivedMsg(message, sender);
+                putMessageToMailbox(decyptedMsg, sender, receiver);
+
             }
         }
         else {
