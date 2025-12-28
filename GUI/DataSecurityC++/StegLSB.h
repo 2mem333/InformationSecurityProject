@@ -90,7 +90,7 @@ void fotografaSifreyiGom(std::string filePath, std::string sifre)
     std::vector<unsigned char> stegoPixels = lsb_pixels(std::move(pixels), pass);
 
     // 4) Çýkýþ: PNG yaz (LSB korunur)
-    std::string outPathPng = "encrpyted.png";
+    std::string outPathPng = "encrypted.png";
     int stride = w * 4;
     if (!stbi_write_png(outPathPng.c_str(), w, h, 4, stegoPixels.data(), stride)) {
         std::cerr << "HATA: PNG yazilamadi: " << outPathPng << "\n";
