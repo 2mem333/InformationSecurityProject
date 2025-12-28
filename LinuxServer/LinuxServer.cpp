@@ -12,15 +12,185 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <fstream>
+
+#include "StegLSB.h"
+
+// Senin alfabeten
+static const std::string B64_CHARS =
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static inline int b64_index(unsigned char c)
+{
+    // Hýzlý mapping: find ile de olur ama bu daha net
+    if ('A' <= c && c <= 'Z') return c - 'A';
+    if ('a' <= c && c <= 'z') return c - 'a' + 26;
+    if ('0' <= c && c <= '9') return c - '0' + 52;
+    if (c == '+') return 62;
+    if (c == '/') return 63;
+    return -1;
+}
+
+std::vector<uint8_t> base64_decode(std::string s)
+{
+    // Eðer "data:image/png;base64,...." gibi geldiyse header kýrp
+    std::size_t comma = s.find(',');
+    if (comma != std::string::npos)
+        s = s.substr(comma + 1);
+
+    std::vector<uint8_t> out;
+    out.reserve((s.size() * 3) / 4);
+
+    int val = 0;
+    int valb = -8;
+
+    for (unsigned char c : s)
+    {
+        if (std::isspace(c))
+            continue;
+
+        if (c == '=')
+            break;
+
+        int idx = b64_index(c);
+        if (idx < 0)
+        {
+            // Geçersiz karakter -> istersen return {} diyebilirsin
+            return std::vector<uint8_t>();
+        }
+
+        val = (val << 6) + idx;
+        valb += 6;
+        if (valb >= 0)
+        {
+            out.push_back(static_cast<uint8_t>((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+
+    return out;
+}
 
 bool checkPassword(std::string name, std::string password)
 {
+    std::ifstream file("databases/users.txt");
+    if (!file.is_open())
+        return false;
 
+    std::string fileName, filePassword;
+
+    while (file >> fileName >> filePassword)
+    {
+        if (fileName == name && filePassword == password)
+        {
+            file.close();
+            return true; // doðru kullanýcý
+        }
+    }
+
+    file.close();
+    return false; // bulunamadý veya yanlýþ
 }
 
-bool registerTheUser(std::string name)
+bool savePicture(const std::string &name, const std::string& file64)
 {
+    // Basit güvenlik
+    if (name.empty() || name.find("..") != std::string::npos ||
+        name.find('/') != std::string::npos || name.find('\\') != std::string::npos)
+        return false;
 
+    std::vector<uint8_t> data = base64_decode(file64);
+    if (data.empty())
+        return false;
+
+    // PNG magic number kontrolü (opsiyonel ama önerilir)
+    if (data.size() < 8 ||
+        data[0] != 0x89 || data[1] != 0x50 || data[2] != 0x4E || data[3] != 0x47 ||
+        data[4] != 0x0D || data[5] != 0x0A || data[6] != 0x1A || data[7] != 0x0A)
+        return false;
+
+    std::ofstream out("pictures/" + name + ".png", std::ios::binary);
+    if (!out.is_open())
+        return false;
+
+    out.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
+    return out.good();
+}
+
+bool registerUser(const std::string& name)
+{
+    std::string filePath = "pictures/" + name + ".png";
+    std::string password = fotograftanSifreyiCikar(filePath);
+
+    if (name.empty() || password.empty())
+        return false;
+
+    if (name.find(' ') != std::string::npos ||
+        password.find(' ') != std::string::npos)
+        return false;
+
+    // Kullanýcý var mý kontrol et
+    {
+        std::ifstream in("databases/users.txt");
+        if (in.is_open())
+        {
+            std::string u, p;
+            while (in >> u >> p)
+            {
+                if (u == name)
+                    return false;
+            }
+        }
+    }
+
+    // Son karakter \n mi kontrol et
+    bool endsWithNewline = false;
+    {
+        std::ifstream in("databases/users.txt", std::ios::binary);
+        if (in.is_open())
+        {
+            in.seekg(0, std::ios::end);
+            if (in.tellg() > 0)
+            {
+                in.seekg(-1, std::ios::end);
+                char last;
+                in.get(last);
+                endsWithNewline = (last == '\n');
+            }
+        }
+    }
+
+    // Ekle
+    std::ofstream out("databases/users.txt", std::ios::app);
+    if (!out.is_open())
+        return false;
+
+    if (!endsWithNewline)
+        out << "\n";   // BOÞ SATIRI AÇ
+
+    out << name << " " << password << "\n";
+    return true;
+}
+
+std::string listUsers()
+{
+    std::ifstream file("databases/users.txt");
+    if (!file.is_open())
+        return ""; // dosya açýlamadýysa boþ string
+
+    std::string result;
+    std::string username, password;
+
+    while (file >> username >> password)
+    {
+        if (!result.empty())
+            result += ",";   // araya virgül koy
+
+        result += username;
+    }
+
+    file.close();
+    return result;
 }
 
 
@@ -141,13 +311,21 @@ static void handle_client(int fd, sockaddr_in addr) {
         std::string type;
         if (json_get_value(req, "type", type)) {
 
-            std::cout << "REQ: " << req << "\n";
+            //std::cout << "REQ: " << req << "\n";
             std::cout << "PARSED type: [" << type << "]\n";
 
             if (type == "REGISTER")
             {
-               
+                std::string username;
+                std::string base64;
+
+                json_get_value(req, "username", username);
+                json_get_value(req, "image_b64", base64);
+
+                savePicture(username, base64);
+                registerUser(username);
             }
+
             else if(type == "LOGIN")
             {
                 std::string username;
@@ -156,15 +334,23 @@ static void handle_client(int fd, sockaddr_in addr) {
                 json_get_value(req, "password", password);
 
                 //burada veritabanýnda kontrol yapcak sonra cccevap göndericek..
-                std::cout << "CHECKING: " << username << "  " << password << "\n";
+                bool loginStatus = checkPassword(username, password);
 
-                std::string resp = "{\"type\":\"ACK\",\"access granted\":\"" + type + "\"}";
+                std::string resp;
+                if (loginStatus) //success
+                {
+                    resp = "{\"type\":\"ACK\",\"access granted\":\"" + type + "\"}";
+                }
+                else 
+                {
+                    resp = "{\"type\":\"ACK\",\"access denied\":\"" + type + "\"}";
+                }
                 if (!send_json(fd, resp)) break;
 
             }
             else if(type == "LISTUSERS")
             {
-                std::string resp = "{\"type\":\"ACK\",\"listing users\":\"" + type + "\"}";
+                std::string resp = "{\"type\":\"ACK\",\"USERS\":\"" + listUsers() + "\"}";
 
                 if (!send_json(fd, resp)) break;
             }
