@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "stb_image.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -166,13 +167,14 @@ int main() {
 
     std::string req;
 
-    std::string cmd = "login";
+    std::string cmd = "register";
 
+    //MEVCUT CALISANLAR
     if (cmd == "register") {
         if (10 < 6) { usage(); closesocket(s); WSACleanup(); return 1; }
 
-        std::string username = "bassar";
-        std::string path = "file";
+        std::string username = "besar";
+        std::string path = "encrypted.png";
 
         auto img = read_file_bytes(path);
         if (img.empty()) {
@@ -186,11 +188,13 @@ int main() {
     else if (cmd == "login") {
         if (10 < 6) { usage(); closesocket(s); WSACleanup(); return 1; }
         req = std::string("{\"type\":\"LOGIN\",\"username\":\"") + json_escape("basar") +
-            "\",\"password\":\"" + json_escape("123") + "\"}";
+            "\",\"password\":\"" + json_escape("14553") + "\"}";
     }
     else if (cmd == "listusers") {
         req = "{\"type\":\"LISTUSERS\"}";
     }
+
+    //EKLENECEK OLANLAR
     else if (cmd == "refreshmailbox") {
         req = "{\"type\":\"REFRESHMAILBOX\"}";
     }
