@@ -575,36 +575,35 @@ private: System::Void login_button_Click(System::Object^ sender, System::EventAr
 		label2->Visible = true;
 		return;
 	}
+		islogined = login(msclr::interop::marshal_as<std::string>(tUsername->Text), msclr::interop::marshal_as<std::string>(tPassword->Text));
 
-	islogined = login(msclr::interop::marshal_as<std::string>(tUsername->Text), msclr::interop::marshal_as<std::string>(tPassword->Text));
-	
-	if (islogined)
-	{
-		panel2->Visible = true;
-		panel5->Visible = false;
-		userpwd->Text = tPassword->Text;
-		usrname->Text = tUsername->Text;
-
-		// Dosyaya yazma
-		std::ofstream file("savedat.txt", std::ios::app); // app = ekleme modu
-		if (file.is_open())
+		if (islogined)
 		{
-			std::string username = msclr::interop::marshal_as<std::string>(tUsername->Text);
-			std::string password = msclr::interop::marshal_as<std::string>(tPassword->Text);
+			panel2->Visible = true;
+			panel5->Visible = false;
+			userpwd->Text = tPassword->Text;
+			usrname->Text = tUsername->Text;
 
-			file << username << " " << password << std::endl;
-			file.close();
+			// Dosyaya yazma
+			std::ofstream file("savedat.txt", std::ios::app); // app = ekleme modu
+			if (file.is_open())
+			{
+				std::string username = msclr::interop::marshal_as<std::string>(tUsername->Text);
+				std::string password = msclr::interop::marshal_as<std::string>(tPassword->Text);
+
+				file << username << " " << password << std::endl;
+				file.close();
+			}
+			label2->Visible = false;
+			usrname->Visible = true;
+			label3->Visible = true;
+			logout_button->Visible = true;
 		}
-		label2->Visible = false;
-		usrname->Visible = true;
-		label3->Visible = true;
-		logout_button->Visible = true;
-	}
-	else
-	{
-		label2->Text = "Invalid password!";
-		label2->Visible = true;
-	}
+		else
+		{
+			label2->Text = "Invalid password!";
+			label2->Visible = true;
+		}
 }
 private: System::Void Main_Load(System::Object^ sender, System::EventArgs^ e) {
 	if (!System::IO::File::Exists("savedat.txt"))
@@ -705,6 +704,12 @@ private: System::Void logout_button_Click(System::Object^ sender, System::EventA
 	richTextBox1->Clear();
 	richTextBox2->Clear();
 	comboBoxUsers->Items->Clear();
+	comboBoxUsers->Text = "";
+
+	if (System::IO::File::Exists("savedat.txt"))
+	{
+		System::IO::File::Delete("savedat.txt");
+	}
 }
 };
 }

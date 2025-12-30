@@ -19,6 +19,9 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+const char* host = "10.208.107.181";
+const char* port = "9090";
+
 std::string DesKeyForUser(const std::string& pwd)
 {
     std::string key(8, 0);
@@ -151,9 +154,6 @@ static void usage() {
 
 void sendPacket(std::string req)
 {
-    const char* host = "172.19.35.66";
-    const char* port = "9090";
-
     WSADATA wsa{};
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         std::cerr << "WSAStartup failed\n";
@@ -213,9 +213,6 @@ void sendPacket(std::string req)
 
 std::string receivePacket(std::string req)
 {
-    const char* host = "172.19.35.66";
-    const char* port = "9090";
-
     WSADATA wsa{};
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         std::cerr << "WSAStartup failed\n";
@@ -299,6 +296,7 @@ void signup(std::string username, std::string passsword, std::string path)
     std::cout << "register packet sent!";
 
 }
+
 bool login(std::string username, std::string passsword)
 {
     std::string req = ("{\"type\":\"LOGIN\",\"username\":\"") + json_escape(username) +
@@ -311,14 +309,12 @@ bool login(std::string username, std::string passsword)
         return false;
 
 }
-
 std::string listUsers()
 {
     std::string req = "{\"type\":\"LISTUSERS\"}";
     std::string resp = receivePacket(req);
     return resp;
 }
-
 std::string refreshMailbox(std::string username, std::string pwd)
 {
     std::string key = DesKeyForUser(pwd);
