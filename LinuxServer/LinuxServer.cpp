@@ -25,7 +25,7 @@ static const std::string B64_CHARS =
 
 static inline int b64_index(unsigned char c)
 {
-    // Hýzlý mapping: find ile de olur ama bu daha net
+    // HÄ±zlÄ± mapping: find ile de olur ama bu daha net
     if ('A' <= c && c <= 'Z') return c - 'A';
     if ('a' <= c && c <= 'z') return c - 'a' + 26;
     if ('0' <= c && c <= '9') return c - '0' + 52;
@@ -36,7 +36,7 @@ static inline int b64_index(unsigned char c)
 
 std::vector<uint8_t> base64_decode(std::string s)
 {
-    // Eðer "data:image/png;base64,...." gibi geldiyse header kýrp
+    // EÄŸer "data:image/png;base64,...." gibi geldiyse header kÄ±rp
     std::size_t comma = s.find(',');
     if (comma != std::string::npos)
         s = s.substr(comma + 1);
@@ -58,7 +58,7 @@ std::vector<uint8_t> base64_decode(std::string s)
         int idx = b64_index(c);
         if (idx < 0)
         {
-            // Geçersiz karakter -> istersen return {} diyebilirsin
+            // GeÃ§ersiz karakter -> istersen return {} diyebilirsin
             return std::vector<uint8_t>();
         }
 
@@ -88,18 +88,18 @@ bool checkPassword(std::string name, std::string password)
         if (fileName == name && filePassword == password)
         {
             file.close();
-            return true; // doðru kullanýcý
+            return true; // doÄŸru kullanÄ±cÄ±
         }
     }
 
     file.close();
-    return false; // bulunamadý veya yanlýþ
+    return false; // bulunamadÄ± veya yanlÄ±ÅŸ
 }
 
 //REGISTER EVENT FUNCTIONS
 bool savePicture(const std::string &name, const std::string& file64)
 {
-    // Basit güvenlik
+    // Basit gÃ¼venlik
     if (name.empty() || name.find("..") != std::string::npos ||
         name.find('/') != std::string::npos || name.find('\\') != std::string::npos)
         return false;
@@ -108,7 +108,7 @@ bool savePicture(const std::string &name, const std::string& file64)
     if (data.empty())
         return false;
 
-    // PNG magic number kontrolü (opsiyonel ama önerilir)
+    // PNG magic number kontrolÃ¼ (opsiyonel ama Ã¶nerilir)
     if (data.size() < 8 ||
         data[0] != 0x89 || data[1] != 0x50 || data[2] != 0x4E || data[3] != 0x47 ||
         data[4] != 0x0D || data[5] != 0x0A || data[6] != 0x1A || data[7] != 0x0A)
@@ -125,6 +125,7 @@ bool registerUser(const std::string& name)
 {
     std::string filePath = "pictures/" + name + ".png";
     std::string password = fotograftanSifreyiCikar(filePath);
+    std::cout << "Reading password from picture (LSB).\n";
 
     if (name.empty() || password.empty())
         return false;
@@ -133,7 +134,7 @@ bool registerUser(const std::string& name)
         password.find(' ') != std::string::npos)
         return false;
 
-    // Kullanýcý var mý kontrol et
+    // KullanÄ±cÄ± var mÄ± kontrol et
     {
         std::ifstream in("databases/users.txt");
         if (in.is_open())
@@ -170,7 +171,7 @@ bool registerUser(const std::string& name)
         return false;
 
     if (!endsWithNewline)
-        out << "\n";   // BOÞ SATIRI AÇ
+        out << "\n";   // BOÅž SATIRI AÃ‡
 
     out << name << " " << password << "\n";
     return true;
@@ -181,7 +182,7 @@ std::string listUsers()
 {
     std::ifstream file("databases/users.txt");
     if (!file.is_open())
-        return ""; // dosya açýlamadýysa boþ string
+        return ""; // dosya aÃ§Ä±lamadÄ±ysa boÅŸ string
 
     std::string result;
     std::string username, password;
@@ -189,7 +190,7 @@ std::string listUsers()
     while (file >> username >> password)
     {
         if (!result.empty())
-            result += ",";   // araya virgül koy
+            result += ",";   // araya virgÃ¼l koy
 
         result += username;
     }
@@ -208,13 +209,13 @@ std::string getMails(const std::string& name)
     std::string result;
     std::string line;
 
-    while (std::getline(file, line))   // satýr satýr oku
+    while (std::getline(file, line))   // satÄ±r satÄ±r oku
     {
         if (line.empty())
             continue;
 
         if (!result.empty())
-            result += ",";   // önceki varsa virgül koy
+            result += ",";   // Ã¶nceki varsa virgÃ¼l koy
 
         result += line;      // SATIRIN TAMAMI
     }
@@ -232,14 +233,14 @@ std::string findPassword(const std::string& name)
     std::string line;
     while (std::getline(file, line))
     {
-        // Boþ satýrlarý geç
+        // BoÅŸ satÄ±rlarÄ± geÃ§
         if (line.empty())
             continue;
 
         std::istringstream iss(line);
         std::string username, password;
 
-        // "efe 123" formatýný bekliyoruz
+        // "efe 123" formatÄ±nÄ± bekliyoruz
         if (!(iss >> username >> password))
             continue;
 
@@ -257,8 +258,8 @@ std::string DesKeyForUser(const std::string& name)
     for (size_t i = 0; i < pwd.size(); ++i)
         key[i % 8] ^= pwd[i];
 
-    // 2) Sezar kaydýrma (printable ASCII 32..126 içinde kalsýn)
-    // shift deðerini pwd uzunluðundan türetiyoruz (deterministik)
+    // 2) Sezar kaydÄ±rma (printable ASCII 32..126 iÃ§inde kalsÄ±n)
+    // shift deÄŸerini pwd uzunluÄŸundan tÃ¼retiyoruz (deterministik)
     int shift = static_cast<int>(pwd.size() % 95); // 95 printable karakter var
     for (int i = 0; i < 8; ++i)
     {
@@ -282,12 +283,12 @@ std::string decryptReceivedMsg(const std::string &msg, const std::string &sender
 }
 bool putMessageToMailbox(const std::string& msg, const std::string& sender, const std::string& receiver)
 {
-    // Mesaj receiver'ýn anahtarý ile þifrelenir
-    std::string RecKey = DesKeyForUser(receiver); // receiver anahtarý
+    // Mesaj receiver'Ä±n anahtarÄ± ile ÅŸifrelenir
+    std::string RecKey = DesKeyForUser(receiver); // receiver anahtarÄ±
     std::string encMsg = simple_des::DES_EncryptBase64(msg, RecKey);
     std::cout << "encrypted msg (with key of rec): " << encMsg << "\n";
 
-    // sender:mesaj formatý
+    // sender:mesaj formatÄ±
     std::string finalMsg = sender + ":" + encMsg;
 
     const std::string path = "databases/messages/" + receiver + ".txt";
@@ -314,7 +315,7 @@ bool putMessageToMailbox(const std::string& msg, const std::string& sender, cons
         }
         inFile.close();
 
-        // Dosyada boþ satýr yoksa mesajý sona ekle
+        // Dosyada boÅŸ satÄ±r yoksa mesajÄ± sona ekle
         if (!written)
         {
             lines.push_back(finalMsg);
@@ -322,7 +323,7 @@ bool putMessageToMailbox(const std::string& msg, const std::string& sender, cons
     }
     else
     {
-        // Dosya yoksa oluþtur ve ilk satýra yaz
+        // Dosya yoksa oluÅŸtur ve ilk satÄ±ra yaz
         lines.push_back(finalMsg);
     }
 
@@ -398,7 +399,7 @@ static bool json_get_value(const std::string& j, const std::string& key, std::st
     size_t colon = j.find(':', k + needle.size());
     if (colon == std::string::npos) return false;
 
-    // boþluklarý geç
+    // boÅŸluklarÄ± geÃ§
     size_t i = colon + 1;
     while (i < j.size() &&
         (j[i] == ' ' || j[i] == '\t' || j[i] == '\r' || j[i] == '\n'))
@@ -406,7 +407,7 @@ static bool json_get_value(const std::string& j, const std::string& key, std::st
 
     // string mi?
     if (i >= j.size() || j[i] != '"') return false;
-    i++; // opening quote sonrasý
+    i++; // opening quote sonrasÄ±
 
     std::string val;
     bool esc = false;
@@ -445,21 +446,21 @@ static void handle_client(int fd, sockaddr_in addr) {
     char ip[INET_ADDRSTRLEN]{};
     ::inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
     uint16_t port = ntohs(addr.sin_port);
-    std::cout << "Client connected: " << ip << ":" << port << "\n";
+    std::cout << "Got packet from: " << ip << ":" << port << "\n";
 
     while (true) {
         std::string req;
         if (!recv_json(fd, req)) break;
 
-        // sadece logla
-        std::cout << "Received JSON (" << req.size() << " bytes)\n";
+        
+        //std::cout << "Received JSON (" << req.size() << " bytes)\n";
 
-        // sadece ACK dön
+        // sadece ACK dÃ¶n
         std::string type;
         if (json_get_value(req, "type", type)) {
 
             //std::cout << "REQ: " << req << "\n";
-            std::cout << "PARSED type: [" << type << "]\n";
+            std::cout << "Packet request type: [" << type << "]\n";
 
             if (type == "REGISTER")
             {
@@ -470,9 +471,14 @@ static void handle_client(int fd, sockaddr_in addr) {
                 json_get_value(req, "image_b64", base64);
 
                 savePicture(username, base64);
-                registerUser(username);
-            }
+                bool result = registerUser(username);
 
+                if(result)
+                std::cout << "Account created for: " << username << "\n";
+                else
+                std::cout << "Errors happened while creating account for: " << username << "\n";
+
+            }
             else if(type == "LOGIN")
             {
                 std::string username;
@@ -480,7 +486,7 @@ static void handle_client(int fd, sockaddr_in addr) {
                 json_get_value(req, "username", username);
                 json_get_value(req, "password", password);
 
-                //burada veritabanýnda kontrol yapcak sonra cccevap göndericek..
+                //burada veritabanÄ±nda kontrol yapcak sonra cccevap gÃ¶ndericek..
                 bool loginStatus = checkPassword(username, password);
 
                 std::string resp;
@@ -496,20 +502,18 @@ static void handle_client(int fd, sockaddr_in addr) {
                 }
                 if (!send_json(fd, resp)) break;
 
-            }
+            }  
             else if(type == "LISTUSERS")
             {
-                std::string resp = listUsers(); //json olarak göndermez
+                std::string resp = listUsers(); //json olarak gÃ¶ndermez
 
                 if (!send_json(fd, resp)) break;
             }
-
             else if (type == "REFRESHMAILBOX")
             {
                 std::string username;
                 json_get_value(req, "username", username);
-                std::string resp = getMails(username); //json olarak göndermez
-                std::cout << "getting mails for: " << username << "\n";
+                std::string resp = getMails(username); //json olarak gÃ¶ndermez
                 if (!send_json(fd, resp)) break;
             }
 
@@ -532,10 +536,12 @@ static void handle_client(int fd, sockaddr_in addr) {
             // type yoksa yine ACK
             if (!send_json(fd, "{\"type\":\"ACK\"}")) break;
         }
+
+        std::cout << "\n";
     }
 
     ::close(fd);
-    std::cout << "Client disconnected\n";
+    //std::cout << "Client disconnected\n";
 }
 
 int main(int argc, char** argv) {
