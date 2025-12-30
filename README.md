@@ -72,4 +72,8 @@ port
 
 **4.** Set them to match the IP address and port used when starting the server
 
+# Sending Message Architecture
+<img width="600" height="300" alt="image" src="https://github.com/user-attachments/assets/e5c5d397-de77-4da1-9a43-c34336e2d787" />
+
+
 
