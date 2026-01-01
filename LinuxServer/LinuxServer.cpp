@@ -14,6 +14,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 
 #include "StegLSB.h"
@@ -72,6 +73,43 @@ std::vector<uint8_t> base64_decode(std::string s)
     }
 
     return out;
+}
+
+//SET USERS ONLINE OR OFFLINE
+std::vector<std::string> onlineUsers;
+
+bool addOnline(const std::string& name)
+{
+    // Zaten var mý kontrol et
+    auto it = std::find(onlineUsers.begin(), onlineUsers.end(), name);
+    if (it != onlineUsers.end())
+        return false;
+
+    onlineUsers.push_back(name);
+    return true;
+}
+bool removeOnline(const std::string& name)
+{
+    auto it = std::find(onlineUsers.begin(), onlineUsers.end(), name);
+    if (it == onlineUsers.end())
+        return false;
+
+    onlineUsers.erase(it);
+    return true;
+}
+std::string listOnlineUsers()
+{
+    std::string result;
+
+    for (size_t i = 0; i < onlineUsers.size(); ++i)
+    {
+        if (i > 0)
+            result += ",";
+
+        result += onlineUsers[i];
+    }
+
+    return result;
 }
 
 //LOGIN EVENT FUNCTION
@@ -503,9 +541,29 @@ static void handle_client(int fd, sockaddr_in addr) {
                 if (!send_json(fd, resp)) break;
 
             }  
+            else if (type == "ONLINE")
+            {
+                std::string username;
+                json_get_value(req, "username", username);
+                addOnline(username);
+                std::cout << "User " << username << " is online.";
+            }
+            else if (type == "OFFLINE")
+            {
+                std::string username;
+                json_get_value(req, "username", username);
+                removeOnline(username);
+                std::cout << "User " << username << " is offline.";
+            }
             else if(type == "LISTUSERS")
             {
                 std::string resp = listUsers(); //json olarak göndermez
+
+                if (!send_json(fd, resp)) break;
+            }
+            else if (type == "LISTONLINEUSERS")
+            {
+                std::string resp = listOnlineUsers(); //json olarak göndermez
 
                 if (!send_json(fd, resp)) break;
             }
