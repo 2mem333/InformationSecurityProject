@@ -33,6 +33,8 @@ namespace DataSecurityC {
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::Panel^ panel5;
 	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Button^ listOnlineUsers;
+	private: System::Windows::Forms::ComboBox^ comboBoxOnline;
 	public:
 	private:
 		//USER DEFINED VARS
@@ -120,6 +122,8 @@ namespace DataSecurityC {
 			this->richTextBox2 = (gcnew System::Windows::Forms::RichTextBox());
 			this->refresh_mailbox_button = (gcnew System::Windows::Forms::Button());
 			this->panel2 = (gcnew System::Windows::Forms::Panel());
+			this->listOnlineUsers = (gcnew System::Windows::Forms::Button());
+			this->comboBoxOnline = (gcnew System::Windows::Forms::ComboBox());
 			this->logout_button = (gcnew System::Windows::Forms::Button());
 			this->panel3 = (gcnew System::Windows::Forms::Panel());
 			this->panel4 = (gcnew System::Windows::Forms::Panel());
@@ -270,7 +274,7 @@ namespace DataSecurityC {
 			this->label4->Font = (gcnew System::Drawing::Font(L"Century Gothic", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(162)));
 			this->label4->ForeColor = System::Drawing::Color::White;
-			this->label4->Location = System::Drawing::Point(22, 22);
+			this->label4->Location = System::Drawing::Point(27, 50);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(68, 20);
 			this->label4->TabIndex = 45;
@@ -341,7 +345,7 @@ namespace DataSecurityC {
 			// comboBoxUsers
 			// 
 			this->comboBoxUsers->FormattingEnabled = true;
-			this->comboBoxUsers->Location = System::Drawing::Point(26, 50);
+			this->comboBoxUsers->Location = System::Drawing::Point(31, 78);
 			this->comboBoxUsers->Name = L"comboBoxUsers";
 			this->comboBoxUsers->Size = System::Drawing::Size(151, 24);
 			this->comboBoxUsers->TabIndex = 51;
@@ -354,7 +358,7 @@ namespace DataSecurityC {
 			this->refresh_users_button->Font = (gcnew System::Drawing::Font(L"Century Gothic", 7.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(162)));
 			this->refresh_users_button->ForeColor = System::Drawing::SystemColors::ButtonFace;
-			this->refresh_users_button->Location = System::Drawing::Point(183, 45);
+			this->refresh_users_button->Location = System::Drawing::Point(188, 73);
 			this->refresh_users_button->Name = L"refresh_users_button";
 			this->refresh_users_button->Size = System::Drawing::Size(70, 32);
 			this->refresh_users_button->TabIndex = 52;
@@ -403,6 +407,8 @@ namespace DataSecurityC {
 			// 
 			// panel2
 			// 
+			this->panel2->Controls->Add(this->listOnlineUsers);
+			this->panel2->Controls->Add(this->comboBoxOnline);
 			this->panel2->Controls->Add(this->label4);
 			this->panel2->Controls->Add(this->refresh_mailbox_button);
 			this->panel2->Controls->Add(this->richTextBox1);
@@ -417,6 +423,30 @@ namespace DataSecurityC {
 			this->panel2->Size = System::Drawing::Size(628, 336);
 			this->panel2->TabIndex = 56;
 			this->panel2->Visible = false;
+			// 
+			// listOnlineUsers
+			// 
+			this->listOnlineUsers->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(58)), static_cast<System::Int32>(static_cast<System::Byte>(58)),
+				static_cast<System::Int32>(static_cast<System::Byte>(58)));
+			this->listOnlineUsers->FlatStyle = System::Windows::Forms::FlatStyle::Popup;
+			this->listOnlineUsers->Font = (gcnew System::Drawing::Font(L"Century Gothic", 7.8F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(162)));
+			this->listOnlineUsers->ForeColor = System::Drawing::SystemColors::ButtonFace;
+			this->listOnlineUsers->Location = System::Drawing::Point(188, 17);
+			this->listOnlineUsers->Name = L"listOnlineUsers";
+			this->listOnlineUsers->Size = System::Drawing::Size(81, 32);
+			this->listOnlineUsers->TabIndex = 63;
+			this->listOnlineUsers->Text = L"list online";
+			this->listOnlineUsers->UseVisualStyleBackColor = false;
+			this->listOnlineUsers->Click += gcnew System::EventHandler(this, &Main::listOnlineUsers_Click);
+			// 
+			// comboBoxOnline
+			// 
+			this->comboBoxOnline->FormattingEnabled = true;
+			this->comboBoxOnline->Location = System::Drawing::Point(31, 18);
+			this->comboBoxOnline->Name = L"comboBoxOnline";
+			this->comboBoxOnline->Size = System::Drawing::Size(151, 24);
+			this->comboBoxOnline->TabIndex = 62;
 			// 
 			// logout_button
 			// 
@@ -477,7 +507,7 @@ namespace DataSecurityC {
 			this->panel5->Controls->Add(this->label1);
 			this->panel5->Controls->Add(this->SelectPicture);
 			this->panel5->Controls->Add(this->login_button);
-			this->panel5->Location = System::Drawing::Point(12, 30);
+			this->panel5->Location = System::Drawing::Point(3, 12);
 			this->panel5->Name = L"panel5";
 			this->panel5->Size = System::Drawing::Size(560, 287);
 			this->panel5->TabIndex = 61;
@@ -501,11 +531,11 @@ namespace DataSecurityC {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(30)), static_cast<System::Int32>(static_cast<System::Byte>(30)),
 				static_cast<System::Int32>(static_cast<System::Byte>(30)));
-			this->ClientSize = System::Drawing::Size(652, 413);
+			this->ClientSize = System::Drawing::Size(640, 413);
 			this->Controls->Add(this->label3);
-			this->Controls->Add(this->panel5);
 			this->Controls->Add(this->logout_button);
 			this->Controls->Add(this->panel2);
+			this->Controls->Add(this->panel5);
 			this->Controls->Add(this->usrname);
 			this->Controls->Add(this->userpwd);
 			this->Controls->Add(this->picturePath);
@@ -514,6 +544,7 @@ namespace DataSecurityC {
 			this->Name = L"Main";
 			this->ShowIcon = false;
 			this->Text = L"Information Security";
+			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Main::Main_FormClosing);
 			this->Load += gcnew System::EventHandler(this, &Main::Main_Load);
 			this->panel1->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
@@ -589,6 +620,9 @@ private: System::Void login_button_Click(System::Object^ sender, System::EventAr
 			if (file.is_open())
 			{
 				std::string username = msclr::interop::marshal_as<std::string>(tUsername->Text);
+
+				onlineTick(username);
+
 				std::string password = msclr::interop::marshal_as<std::string>(tPassword->Text);
 
 				file << username << " " << password << std::endl;
@@ -598,6 +632,7 @@ private: System::Void login_button_Click(System::Object^ sender, System::EventAr
 			usrname->Visible = true;
 			label3->Visible = true;
 			logout_button->Visible = true;
+
 		}
 		else
 		{
@@ -629,6 +664,9 @@ private: System::Void Main_Load(System::Object^ sender, System::EventArgs^ e) {
 			logout_button->Visible = true;
 			usrname->Text = parts[0];
 			userpwd->Text = parts[1];
+
+			std::string username = msclr::interop::marshal_as<std::string>(usrname->Text);
+			onlineTick(username);
 		}
 	}
 }
@@ -706,10 +744,45 @@ private: System::Void logout_button_Click(System::Object^ sender, System::EventA
 	comboBoxUsers->Items->Clear();
 	comboBoxUsers->Text = "";
 
+	std::string username = msclr::interop::marshal_as<std::string>(usrname->Text);
+	offlineTick(username);
+
 	if (System::IO::File::Exists("savedat.txt"))
 	{
 		System::IO::File::Delete("savedat.txt");
 	}
+}
+
+private: System::Void listOnlineUsers_Click(System::Object^ sender, System::EventArgs^ e) {
+
+	std::string alluser = listUsersOnline();
+
+	comboBoxOnline->Items->Clear();
+
+	std::stringstream ss(alluser);
+	std::string item;
+
+	while (std::getline(ss, item, ','))  // virgüle göre böl
+	{
+		// boþ gelenleri atla (ör: "baris,,efe" gibi)
+		if (item.empty()) continue;
+
+		// System::String^'e çevir
+		System::String^ managedItem = msclr::interop::marshal_as<System::String^>(item);
+
+		if (managedItem == usrname->Text)
+			continue;
+
+		// Ýstersen baþ/son boþluklarý temizle
+		managedItem = managedItem->Trim();
+
+		if (managedItem->Length > 0)
+			comboBoxOnline->Items->Add(managedItem);
+	}
+}
+private: System::Void Main_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+	std::string username = msclr::interop::marshal_as<std::string>(usrname->Text);
+	offlineTick(username);
 }
 };
 }

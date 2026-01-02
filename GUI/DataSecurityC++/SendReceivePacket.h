@@ -19,7 +19,7 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-const char* host = "10.208.107.181";
+const char* host = "10.208.107.155";
 const char* port = "9090";
 
 std::string DesKeyForUser(const std::string& pwd)
@@ -150,7 +150,6 @@ static void usage() {
         "  Source.exe <host> <port> listusers\n"
         "  Source.exe <host> <port> sendmessage <from> <to> <message>\n";
 }
-
 
 void sendPacket(std::string req)
 {
@@ -315,6 +314,13 @@ std::string listUsers()
     std::string resp = receivePacket(req);
     return resp;
 }
+std::string listUsersOnline()
+{
+    std::string req = "{\"type\":\"LISTONLINEUSERS\"}";
+    std::string resp = receivePacket(req);
+    return resp;
+}
+
 std::string refreshMailbox(std::string username, std::string pwd)
 {
     std::string key = DesKeyForUser(pwd);
@@ -358,6 +364,17 @@ std::string refreshMailbox(std::string username, std::string pwd)
 }
 
 
-
+void onlineTick(std::string username)
+{
+    std::string req = ("{\"type\":\"ONLINE\",\"username\":\"") + json_escape(username) +
+        "\"}";
+    sendPacket(req);
+}
+void offlineTick(std::string username)
+{
+    std::string req = ("{\"type\":\"OFFLINE\",\"username\":\"") + json_escape(username) +
+        "\"}";
+    sendPacket(req);
+}
 
 
